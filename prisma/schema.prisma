@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model publisher {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description String?  @db.VarChar(255)
+  image       String?  @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  user_id     String   @db.Uuid
+  tenant_id   String   @db.VarChar(255)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  story       story[]
+}
+
+model story {
+  id                         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                      String     @db.VarChar(255)
+  content                    String
+  genre                      String     @db.VarChar(255)
+  release_date               DateTime   @db.Date
+  reads                      Int        @default(0)
+  writer_id                  String?    @db.Uuid
+  editor_id                  String?    @db.Uuid
+  publisher_id               String?    @db.Uuid
+  created_at                 DateTime   @default(now()) @db.Timestamp(6)
+  updated_at                 DateTime   @default(now()) @db.Timestamp(6)
+  user_story_editor_idTouser user?      @relation("story_editor_idTouser", fields: [editor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  publisher                  publisher? @relation(fields: [publisher_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_story_writer_idTouser user?      @relation("story_writer_idTouser", fields: [writer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                       String      @unique @db.VarChar(255)
+  firstName                   String?     @db.VarChar(255)
+  lastName                    String?     @db.VarChar(255)
+  roq_user_id                 String      @db.VarChar(255)
+  tenant_id                   String      @db.VarChar(255)
+  created_at                  DateTime    @default(now()) @db.Timestamp(6)
+  updated_at                  DateTime    @default(now()) @db.Timestamp(6)
+  publisher                   publisher[]
+  story_story_editor_idTouser story[]     @relation("story_editor_idTouser")
+  story_story_writer_idTouser story[]     @relation("story_writer_idTouser")
+}
